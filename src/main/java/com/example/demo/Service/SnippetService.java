@@ -9,6 +9,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -27,15 +28,11 @@ public class SnippetService {
         newSnippet.setExpiresin(newTime);
         return _snippetDao.save(newSnippet);
 
-
-
     }
 
-    private String add30SecoundToExpiretionDate(Snippet elem) {
-
+    private String add30SecondToExpirationDate(Snippet elem) {
 
        return Instant.now().plusSeconds( TimeUnit.SECONDS.toSeconds( 30)).toString();
-
     }
     public Snippet get(String key) throws ParseException {
 
@@ -44,22 +41,21 @@ public class SnippetService {
             return null;
 
 
-         SimpleDateFormat localDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-        Date timeSnippet=localDateFormat.parse(elem.getExpiresIn());
-         Date timenow= new Date();
+        Instant elemExpirationTime= Instant.parse(elem.getExpiresIn());
+        Instant currentTime= Instant.now();
+
+        if (elemExpirationTime.compareTo(currentTime)>0) {
+
+            elem.setExpiresin(add30SecondToExpirationDate(elem));
+            _snippetDao.update(elem);
+            return elem;
+
+        } else {
+            _snippetDao.delete(elem);
+
+        }
 
 
-            if(timeSnippet.before(timenow)){
-
-               elem.setExpiresin(add30SecoundToExpiretionDate(elem));
-               _snippetDao.update(elem);
-               return elem;
-
-          }
-           else{
-               _snippetDao.delete(elem);
-
-          }
         return null;
     }
 

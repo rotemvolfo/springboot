@@ -2,7 +2,6 @@ package com.example.demo.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class Snippet {
 
     private String name;
@@ -14,6 +13,9 @@ public class Snippet {
 
     public String getName() {
         return name;
+    }
+    public String getUrl() {
+        return url;
     }
     public void setUrl(String newurl) {
        this.url=newurl;

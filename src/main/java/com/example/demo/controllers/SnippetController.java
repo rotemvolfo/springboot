@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.servlet.http.HttpServletRequest;
 import java.text.ParseException;
 
 @RestController
@@ -21,28 +22,35 @@ public class SnippetController {
 
 
     @RequestMapping(value="/snippets",method = RequestMethod.POST)
-    public ResponseEntity createSnippet(@RequestBody Snippet snippet, UriComponentsBuilder usBuilder) throws ParseException {
+    public ResponseEntity createSnippet(@RequestHeader String host ,@RequestBody Snippet snippet) {
 
-        snippet.setUrl("https://example.com/snippets/"+snippet.getName());
-        if(_snipptService.save(snippet) == null){
+        snippet.setUrl(host+"/snippets/"+snippet.getName());
+
+       Snippet responseObj =_snipptService.save(snippet);
+        if(responseObj == null){
 
             return new ResponseEntity(HttpStatus.CONFLICT);
         }
 
-
-
-        return new ResponseEntity( _snipptService.get(snippet.getName()), HttpStatus.CREATED);
+        return new ResponseEntity<>(responseObj, HttpStatus.CREATED);
 
 
     }
 
 
     @RequestMapping(value = "/snippets/{name:[A-Za-z]+}",method = RequestMethod.GET)
-    public ResponseEntity<Snippet> getSnippet(@PathVariable("name") String name) throws ParseException {
-        Snippet snippet=_snipptService.get(name);
-        if(snippet == null)
-            return new ResponseEntity(HttpStatus.BAD_REQUEST);
-        else
-            return new  ResponseEntity<Snippet>(snippet,HttpStatus.OK);
-    }
+    public ResponseEntity<Snippet> getSnippet(@PathVariable("name") String name){
+         try {
+             Snippet snippet = _snipptService.get(name);
+             if (snippet == null)
+                 return new ResponseEntity(HttpStatus.NOT_FOUND);
+             else
+                 return new ResponseEntity<>(snippet, HttpStatus.OK);
+         }
+         catch (Exception ex){
+             return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+         }
+      }
+
+
 }
